@@ -1,0 +1,240 @@
+<!doctype html>
+
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beatles Library — Software de canciones</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#ffde59;--muted:#9aa4b2}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#071024 0%,#081424 100%);color:#e6eef8}
+    header{padding:28px 20px;display:flex;gap:20px;align-items:center;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#ffb652,#ff5e78);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b1220}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    .toolbar{margin-left:auto;display:flex;gap:10px;align-items:center}
+    .search{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);min-width:220px;color:inherit}
+    .select{padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+    main{padding:22px;max-width:1100px;margin:18px auto}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .album-cover{height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#081224}
+    .meta{margin-top:10px}
+    .meta h3{margin:0;font-size:16px}
+    .meta p{margin:6px 0 0 0;color:var(--muted);font-size:13px}
+    .tracks{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.03);max-height:220px;overflow:auto}
+    .track{display:flex;justify-content:space-between;padding:6px 4px;border-radius:6px}
+    .small{font-size:13px;color:var(--muted)}
+    .btn{padding:8px 10px;border-radius:8px;background:var(--accent);border:none;color:#0b1220;font-weight:600;cursor:pointer}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    footer{max-width:1100px;margin:20px auto;color:var(--muted);font-size:13px;padding:0 22px}
+    @media (max-width:640px){.toolbar{flex-direction:column;gap:8px;align-items:flex-end}.logo{width:46px;height:46px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">B</div>
+      <div>
+        <h1>Beatles Library</h1>
+        <p class="lead">Catálogo interactivo con todos los álbumes de The Beatles — busca, filtra y explora canciones.</p>
+      </div>
+    </div><div class="toolbar">
+  <input id="search" class="search" placeholder="Buscar álbum o canción..."/>
+  <select id="yearFilter" class="select">
+    <option value="all">Todos los años</option>
+  </select>
+  <button id="download" class="btn">Descargar JSON</button>
+</div>
+
+  </header>  <main>
+    <section id="albumsGrid" class="grid" aria-live="polite"></section>
+  </main>  <footer>
+    <div>Creado como demostración. Los álbumes incluidos son los álbumes de estudio oficiales (Reino Unido) y lanzamientos importantes.</div>
+  </footer>  <script>
+    // Datos: álbums de estudio (Reino Unido) + Magical Mystery Tour + Yellow Submarine
+    const albums = [
+      {
+        titulo: "Please Please Me",
+        año: 1963,
+        portadaColor: "linear-gradient(135deg,#ffd89b,#19547b)",
+        canciones: [
+          "I Saw Her Standing There","Misery","Anna (Go to Him)","Chains","Boys","Ask Me Why","Please Please Me","Love Me Do","P.S. I Love You","Baby It's You","Do You Want to Know a Secret","A Taste of Honey","There's a Place","Twist and Shout"
+        ]
+      },
+      {
+        titulo: "With the Beatles",
+        año: 1963,
+        portadaColor: "linear-gradient(135deg,#a1c4fd,#c2e9fb)",
+        canciones: [
+          "It Won't Be Long","All I've Got to Do","All My Loving","Don't Bother Me","Little Child","Till There Was You","Please Mr. Postman","Roll Over Beethoven","Hold Me Tight","You Really Got a Hold on Me","I Wanna Be Your Man","Devil in Her Heart","Not a Second Time","Money (That's What I Want)"
+        ]
+      },
+      {
+        titulo: "A Hard Day's Night",
+        año: 1964,
+        portadaColor: "linear-gradient(135deg,#ff9a9e,#fecfef)",
+        canciones: [
+          "A Hard Day's Night","I Should Have Known Better","If I Fell","I'm Happy Just to Dance with You","And I Love Her","Tell Me Why","Can't Buy Me Love","Any Time at All","I'll Cry Instead","Things We Said Today","When I Get Home","You Can't Do That","I'll Be Back"
+        ]
+      },
+      {
+        titulo: "Beatles for Sale",
+        año: 1964,
+        portadaColor: "linear-gradient(135deg,#d4fc79,#96e6a1)",
+        canciones: [
+          "No Reply","I'm a Loser","Baby's in Black","Rock and Roll Music","I'll Follow the Sun","Mr. Moonlight","Kansas City/Hey-Hey-Hey-Hey!","Eight Days a Week","Words of Love","Honey Don't","Every Little Thing","I Don't Want to Spoil the Party","What You're Doing","Everybody's Trying to Be My Baby"
+        ]
+      },
+      {
+        titulo: "Help!",
+        año: 1965,
+        portadaColor: "linear-gradient(135deg,#f6d365,#fda085)",
+        canciones: [
+          "Help!","The Night Before","You've Got to Hide Your Love Away","I Need You","Another Girl","You're Going to Lose That Girl","Ticket to Ride","Act Naturally","It's Only Love","You Like Me Too Much","Tell Me What You See","I've Just Seen a Face","Yesterday","Dizzy Miss Lizzy"
+        ]
+      },
+      {
+        titulo: "Rubber Soul",
+        año: 1965,
+        portadaColor: "linear-gradient(135deg,#a8edea,#fed6e3)",
+        canciones: [
+          "Drive My Car","Norwegian Wood (This Bird Has Flown)","You Won't See Me","Nowhere Man","Think for Yourself","The Word","Michelle","What Goes On","Girl","I'm Looking Through You","In My Life","Wait","If I Needed Someone","Run for Your Life"
+        ]
+      },
+      {
+        titulo: "Revolver",
+        año: 1966,
+        portadaColor: "linear-gradient(135deg,#b5f4ff,#7bdcb5)",
+        canciones: [
+          "Taxman","Eleanor Rigby","I'm Only Sleeping","Love You To","Here, There and Everywhere","Yellow Submarine","She Said She Said","Good Day Sunshine","And Your Bird Can Sing","For No One","Doctor Robert","I Want to Tell You","Got to Get You into My Life","Tomorrow Never Knows"
+        ]
+      },
+      {
+        titulo: "Sgt. Pepper's Lonely Hearts Club Band",
+        año: 1967,
+        portadaColor: "linear-gradient(135deg,#fbc2eb,#a6c1ee)",
+        canciones: [
+          "Sgt. Pepper's Lonely Hearts Club Band","With a Little Help from My Friends","Lucy in the Sky with Diamonds","Getting Better","Fixing a Hole","She's Leaving Home","Being for the Benefit of Mr. Kite!","Within You Without You","When I'm Sixty-Four","Lovely Rita","Good Morning Good Morning","Sgt. Pepper's (Reprise)","A Day in the Life"
+        ]
+      },
+      {
+        titulo: "Magical Mystery Tour",
+        año: 1967,
+        portadaColor: "linear-gradient(135deg,#ffd6a5,#fdffb6)",
+        canciones: [
+          "Magical Mystery Tour","The Fool on the Hill","Flying","Blue Jay Way","Your Mother Should Know","I Am the Walrus","Hello, Goodbye","Strawberry Fields Forever","Penny Lane","Baby, You're a Rich Man","All You Need Is Love"
+        ]
+      },
+      {
+        titulo: "The Beatles (White Album)",
+        año: 1968,
+        portadaColor: "linear-gradient(135deg,#e0c3fc,#8ec5fc)",
+        canciones: [
+          "Back in the U.S.S.R.","Dear Prudence","Glass Onion","Ob-La-Di, Ob-La-Da","Wild Honey Pie","The Continuing Story of Bungalow Bill","While My Guitar Gently Weeps","Happiness Is a Warm Gun","Martha My Dear","I'm So Tired","Blackbird","Piggies","Rocky Raccoon","Don't Pass Me By","Why Don't We Do It in the Road?","I Will","Julia","Birthday","Yer Blues","Mother Nature's Son","Everybody's Got Something to Hide Except Me and My Monkey","Sexy Sadie","Helter Skelter","Long, Long, Long","Revolution 1","Honey Pie","Savoy Truffle","Cry Baby Cry","Revolution 9","Good Night"
+        ]
+      },
+      {
+        titulo: "Yellow Submarine",
+        año: 1969,
+        portadaColor: "linear-gradient(135deg,#ffecd2,#fcb69f)",
+        canciones: [
+          "Yellow Submarine","Only a Northern Song","All Together Now","Hey Bulldog","It's All Too Much","All You Need Is Love","\n(plus orchestral and instrumental pieces from the film)"
+        ]
+      },
+      {
+        titulo: "Abbey Road",
+        año: 1969,
+        portadaColor: "linear-gradient(135deg,#d4cbe6,#f3e7e9)",
+        canciones: [
+          "Come Together","Something","Maxwell's Silver Hammer","Oh! Darling","Octopus's Garden","I Want You (She's So Heavy)","Here Comes the Sun","Because","You Never Give Me Your Money","Sun King","Mean Mr. Mustard","Polythene Pam","She Came In Through the Bathroom Window","Golden Slumbers","Carry That Weight","The End","Her Majesty"
+        ]
+      },
+      {
+        titulo: "Let It Be",
+        año: 1970,
+        portadaColor: "linear-gradient(135deg,#cfd9df,#e2ebf0)",
+        canciones: [
+          "Two of Us","Dig a Pony","Across the Universe","I Me Mine","Dig It","Let It Be","Maggie Mae","I've Got a Feeling","One After 909","The Long and Winding Road","For You Blue","Get Back"
+        ]
+      }
+    ];
+
+    // UI helpers
+    const grid = document.getElementById('albumsGrid');
+    const search = document.getElementById('search');
+    const yearFilter = document.getElementById('yearFilter');
+    const download = document.getElementById('download');
+
+    function populateYearFilter(){
+      const years = [...new Set(albums.map(a=>a.año))].sort((a,b)=>b-a);
+      years.forEach(y=>{
+        const opt = document.createElement('option'); opt.value = y; opt.textContent = y; yearFilter.appendChild(opt);
+      });
+    }
+
+    function render(albumsToRender){
+      grid.innerHTML = '';
+      albumsToRender.forEach(album=>{
+        const card = document.createElement('article'); card.className='card';
+        const cover = document.createElement('div'); cover.className='album-cover'; cover.style.background = album.portadaColor; cover.textContent = album.titulo;
+        const meta = document.createElement('div'); meta.className='meta';
+        const h3 = document.createElement('h3'); h3.textContent = album.titulo + ' — ' + album.año;
+        const p = document.createElement('p'); p.className='small'; p.textContent = album.canciones.length + ' canciones';
+        meta.appendChild(h3); meta.appendChild(p);
+
+        const tracks = document.createElement('div'); tracks.className='tracks';
+        album.canciones.forEach((t,i)=>{
+          const tr = document.createElement('div'); tr.className='track';
+          const title = document.createElement('div'); title.textContent = (i+1) + '. ' + t;
+          const btns = document.createElement('div');
+          const play = document.createElement('button'); play.className='btn'; play.style.padding='6px 8px'; play.textContent='▶';
+          play.title = 'Simular reproducir: '+t;
+          play.onclick = ()=>{ alert('Simulación: reproducir "'+t+'" — (no hay audio en esta demo)'); };
+          btns.appendChild(play);
+          tr.appendChild(title); tr.appendChild(btns);
+          tracks.appendChild(tr);
+        });
+
+        const controls = document.createElement('div'); controls.className='controls';
+        const showBtn = document.createElement('button'); showBtn.className='btn'; showBtn.textContent='Mostrar/Ocultar canciones';
+        showBtn.onclick = ()=>{ tracks.style.display = tracks.style.display === 'none' ? 'block' : 'none'; };
+        controls.appendChild(showBtn);
+
+        card.appendChild(cover); card.appendChild(meta); card.appendChild(controls); card.appendChild(tracks);
+        grid.appendChild(card);
+      });
+    }
+
+    function applyFilters(){
+      const q = search.value.trim().toLowerCase();
+      const year = yearFilter.value;
+      const filtered = albums.filter(a=>{
+        const inYear = (year==='all') || (String(a.año)===String(year));
+        if(!inYear) return false;
+        if(!q) return true;
+        if(a.titulo.toLowerCase().includes(q)) return true;
+        return a.canciones.some(c=>c.toLowerCase().includes(q));
+      });
+      render(filtered);
+    }
+
+    // Init
+    populateYearFilter(); render(albums);
+
+    search.addEventListener('input', applyFilters);
+    yearFilter.addEventListener('change', applyFilters);
+
+    download.addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(albums,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'beatles_albums.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Accessibility: focus first album when searching
+    search.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ document.querySelector('.card')?.focus(); }});
+
+  </script></body>
+</html>
